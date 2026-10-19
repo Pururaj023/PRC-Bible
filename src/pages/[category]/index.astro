@@ -1,0 +1,48 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import GuideCard from '../../components/GuideCard.astro';
+import { categories, getCategory, indexOf } from '../../data/categories';
+
+export function getStaticPaths() {
+  return categories.map((c) => ({ params: { category: c.slug } }));
+}
+const { category } = Astro.params;
+const cat = getCategory(category!);
+const guides = (await getCollection('guides'))
+  .filter((g) => g.data.category === category)
+  .sort((a, b) => a.data.order - b.data.order);
+---
+<Base title={cat.title} description={cat.desc}>
+  <div class="wrap cat">
+    <a class="back" href="/">← Back to home</a>
+    <div class="cat-head">
+      <div class="cat-title">
+        <h1>{cat.title}</h1>
+        <span class="idx">{indexOf(cat.slug)} / {String(categories.length).padStart(2, '0')}</span>
+      </div>
+      <p class="cat-desc">{cat.desc}</p>
+    </div>
+
+    {guides.length ? (
+      <div class="auto-grid">
+        {guides.map((g, i) => (
+          <GuideCard
+            href={`/${cat.slug}/${g.id}/`}
+            index={String(i + 1).padStart(2, '0')}
+            icon={g.data.icon}
+            title={g.data.title}
+            summary={g.data.summary}
+            tag={g.data.tag}
+          />
+        ))}
+      </div>
+    ) : (
+      <div class="empty">
+        <div class="ico">🗂️</div>
+        <strong>No integrations yet</strong>
+        Share a doc and it'll show up here as a card.
+      </div>
+    )}
+  </div>
+</Base>

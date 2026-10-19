@@ -1,0 +1,83 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import GuideCard from '../components/GuideCard.astro';
+import { categories, getCategory } from '../data/categories';
+
+const guides = await getCollection('guides');
+const index = guides.map((g) => ({
+  title: g.data.title,
+  summary: g.data.summary,
+  cat: getCategory(g.data.category).title,
+  href: `/${g.data.category}/${g.id}/`,
+}));
+const count = (slug: string) => guides.filter((g) => g.data.category === slug).length;
+---
+<Base>
+  <div class="wrap">
+    <section class="hero">
+      <span class="eyebrow">Living reference · work in progress</span>
+      <h1>PRC</h1>
+      <p class="lede">One place for everything that keeps a PR moving — playbooks, research notes, known issues, the commands you always forget, and the Kubernetes &amp; Linux incantations that save the day.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="/how-to/">Jump into the sections</a>
+        <a class="btn btn-ghost" href="/commands/">Frequent commands</a>
+      </div>
+    </section>
+
+    <div class="search" id="search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="q" type="search" placeholder="Search guides…" autocomplete="off" aria-label="Search guides" />
+      <kbd>/</kbd>
+      <div class="results" id="results" hidden></div>
+    </div>
+
+    <section class="home-grid">
+      <p class="section-label">// contents</p>
+      <div class="card-grid">
+        {categories.map((c, i) => (
+          <GuideCard
+            href={`/${c.slug}/`}
+            index={String(i + 1).padStart(2, '0')}
+            icon={c.icon}
+            title={c.title}
+            summary={c.blurb}
+            tag={count(c.slug) ? `${c.tag} · ${count(c.slug)}` : c.tag}
+          />
+        ))}
+      </div>
+    </section>
+  </div>
+
+  <script is:inline define:vars={{ index }}>
+    const q = document.getElementById('q');
+    const box = document.getElementById('results');
+    let sel = -1;
+    const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    function render() {
+      const t = q.value.trim().toLowerCase();
+      if (!t) { box.hidden = true; return; }
+      const hits = index.filter((g) => (g.title + ' ' + g.summary + ' ' + g.cat).toLowerCase().includes(t)).slice(0, 6);
+      box.innerHTML = hits.length
+        ? hits.map((g) => `<a href="${g.href}"><b>${esc(g.title)}</b><span>${esc(g.cat)} — ${esc(g.summary)}</span></a>`).join('')
+        : '<div class="none">No guides match that yet.</div>';
+      box.hidden = false; sel = -1;
+    }
+    q.addEventListener('input', render);
+    q.addEventListener('keydown', (e) => {
+      const items = [...box.querySelectorAll('a')];
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (!items.length) return;
+        sel = (sel + (e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length;
+        items.forEach((a, i) => a.classList.toggle('sel', i === sel));
+      } else if (e.key === 'Enter' && items.length) {
+        items[sel < 0 ? 0 : sel].click();
+      } else if (e.key === 'Escape') { q.value = ''; box.hidden = true; q.blur(); }
+    });
+    document.addEventListener('click', (e) => { if (!document.getElementById('search').contains(e.target)) box.hidden = true; });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === '/' && document.activeElement !== q && !/input|textarea/i.test(document.activeElement.tagName)) { e.preventDefault(); q.focus(); }
+    });
+  </script>
+</Base>

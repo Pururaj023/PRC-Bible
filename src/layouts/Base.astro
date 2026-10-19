@@ -1,0 +1,61 @@
+---
+import '@fontsource-variable/inter';
+import '@fontsource-variable/space-grotesk';
+import '@fontsource-variable/jetbrains-mono';
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+import Splash from '../components/Splash.astro';
+
+interface Props { title?: string; description?: string; }
+const { title, description = 'PRC — a living reference for playbooks, research notes, known issues, commands, Kubernetes and Linux.' } = Astro.props;
+const pageTitle = title ? `${title} · PRC` : 'PRC';
+const path = Astro.url.pathname;
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#06080d" />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!-- show the splash once per browser session; runs before first paint -->
+    <script is:inline>
+      try {
+        if (sessionStorage.getItem('prc-splash')) document.documentElement.classList.add('no-splash');
+        else sessionStorage.setItem('prc-splash', '1');
+      } catch (e) {}
+    </script>
+  </head>
+  <body>
+    <Splash />
+    <div class="glow" aria-hidden="true"><i></i><i></i><i></i></div>
+    <div class="noise" aria-hidden="true"></div>
+    <Header path={path} />
+    <main><slot /></main>
+    <footer class="site-footer">PRC — a living reference, updated as it grows.</footer>
+
+    <script>
+      // copy buttons on every code block
+      document.querySelectorAll('.prose pre').forEach((pre) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'copy';
+        btn.textContent = 'Copy';
+        btn.setAttribute('aria-label', 'Copy code');
+        btn.addEventListener('click', async () => {
+          try {
+            await navigator.clipboard.writeText(pre.querySelector('code')?.innerText ?? pre.innerText);
+            btn.textContent = 'Copied';
+            btn.classList.add('done');
+            setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('done'); }, 1600);
+          } catch {}
+        });
+        pre.appendChild(btn);
+      });
+    </script>
+  </body>
+</html>

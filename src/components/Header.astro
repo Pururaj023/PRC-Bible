@@ -1,0 +1,14 @@
+---
+import { categories } from '../data/categories';
+const { path } = Astro.props;
+---
+<header class="site-header">
+  <div class="nav-inner">
+    <a class="brand" href="/"><span class="brand-mark"></span> PRC</a>
+    <nav class="links" aria-label="Sections">
+      {categories.map((c) => (
+        <a href={`/${c.slug}/`} aria-current={path.startsWith(`/${c.slug}/`) ? 'page' : undefined}>{c.nav}</a>
+      ))}
+    </nav>
+  </div>
+</header>
