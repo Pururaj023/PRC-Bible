@@ -1,10 +1,11 @@
 ---
 import Base from '../layouts/Base.astro';
+import Orb from '../components/Orb.astro';
 ---
 <Base title="Not found">
   <div class="wrap cat">
     <div class="empty reveal">
-      <div class="orb-wrap"><div class="orb"><i class="b1"></i><i class="b2"></i><i class="b3"></i></div></div>
+      <Orb size="56px" state="breathing" />
       <strong>Lost in thought</strong>
       That page doesn't exist. <a href="/" style="color:#fff;border-bottom:1px solid rgba(255,255,255,.3)">Back home</a>
     </div>

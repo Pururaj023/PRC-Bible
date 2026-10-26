@@ -5,6 +5,7 @@ import '@fontsource-variable/jetbrains-mono';
 import '../styles/global.css';
 import Header from '../components/Header.astro';
 import Splash from '../components/Splash.astro';
+import Orb from '../components/Orb.astro';
 
 interface Props { title?: string; description?: string; progress?: boolean; }
 const { title, description = 'PRC — a living reference for playbooks, research notes, known issues, commands, scripts, Kubernetes and Linux.', progress = false } = Astro.props;
@@ -43,13 +44,41 @@ const path = Astro.url.pathname;
     <Header path={path} />
     <main><slot /></main>
     <footer class="site-footer">
-      <div class="orb-wrap"><div class="orb"><i class="b1"></i><i class="b2"></i><i class="b3"></i></div></div>
+      <Orb size="20px" state="breathing" />
       PRC — a living reference
     </footer>
 
     <script>
+      import Lenis from 'lenis';
+      import 'lenis/dist/lenis.css';
+      import { mountAll } from '../scripts/orbs';
+
       const root = document.documentElement;
       const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const firstVisit = !root.classList.contains('no-splash');
+
+      // ---- Lenis smooth scrolling (paused while the splash plays)
+      let lenis: Lenis | null = null;
+      if (!reduce) {
+        lenis = new Lenis({ lerp: 0.09, smoothWheel: true });
+        if (firstVisit) {
+          lenis.stop();
+          window.addEventListener('splash:done', () => lenis?.start(), { once: true });
+          setTimeout(() => lenis?.start(), 3800);
+        }
+        const raf = (time: number) => { lenis!.raf(time); requestAnimationFrame(raf); };
+        requestAnimationFrame(raf);
+      }
+
+      // ---- thinking orbs
+      mountAll();
+      const spOrb = document.querySelector('#splash canvas[data-orb]') as any;
+      if (spOrb && firstVisit) {
+        // the orb changes what it's "doing" in step with the splash captions
+        setTimeout(() => spOrb._orb?.setState('searching'), 1500);
+        setTimeout(() => spOrb._orb?.setState('breathing'), 2500);
+        window.addEventListener('splash:done', () => setTimeout(() => spOrb._orb?.destroy(), 1200), { once: true });
+      }
 
       // ---- copy buttons
       document.querySelectorAll('.prose pre').forEach((pre) => {

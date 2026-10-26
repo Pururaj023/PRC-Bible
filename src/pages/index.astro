@@ -2,6 +2,7 @@
 import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
 import GuideCard from '../components/GuideCard.astro';
+import Orb from '../components/Orb.astro';
 import { categories, getCategory } from '../data/categories';
 
 const guides = await getCollection('guides');
@@ -17,13 +18,7 @@ const topics = ['Kubernetes', 'Argo CD', 'KEDA', 'Azure Event Hub', 'Kafka', 'AK
 <Base>
   <div class="wrap">
     <section class="hero">
-      <div class="hero-orb" aria-hidden="true">
-        <div class="orb-wrap">
-          <span class="ring"></span><span class="ring"></span><span class="ring"></span>
-          <span class="o o1"><i></i></span><span class="o o2"><i></i></span><span class="o o3"><i></i></span>
-          <div class="orb"><i class="b1"></i><i class="b2"></i><i class="b3"></i></div>
-        </div>
-      </div>
+      <div class="hero-orb" aria-hidden="true"><Orb state="searching" /></div>
 
       <p class="kicker reveal blur" style="--i:0"><span class="dot"></span> Living reference</p>
       <h1 class="reveal-title" aria-label="PRC"><span style="--i:1">P</span><span style="--i:2">R</span><span style="--i:3">C</span></h1>

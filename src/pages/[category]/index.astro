@@ -1,6 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
+import Orb from '../../components/Orb.astro';
 import GuideCard from '../../components/GuideCard.astro';
 import { categories, getCategory } from '../../data/categories';
 
@@ -40,7 +41,7 @@ const guides = (await getCollection('guides'))
       </div>
     ) : (
       <div class="empty reveal" style="--i:5">
-        <div class="orb-wrap"><div class="orb"><i class="b1"></i><i class="b2"></i><i class="b3"></i></div></div>
+        <Orb size="56px" state="breathing" />
         <strong>Nothing here yet</strong>
         Share a doc and it will appear as a card.
       </div>

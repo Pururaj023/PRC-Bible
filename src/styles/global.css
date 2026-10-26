@@ -15,7 +15,7 @@
 }
 html.no-splash{--d0:0s}
 *{box-sizing:border-box}
-html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:16px;line-height:1.6;
   -webkit-font-smoothing:antialiased;min-height:100dvh;display:flex;flex-direction:column;overflow-x:hidden}
 a{color:inherit;text-decoration:none}
@@ -44,35 +44,12 @@ main{flex:1;position:relative;z-index:2}
 .grain{position:fixed;inset:0;z-index:80;pointer-events:none;opacity:.035;mix-blend-mode:overlay;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
 
-/* ================= the thinking orb (splash + hero + brand) ================= */
-.orb-wrap{--s:140px;position:relative;width:var(--s);height:var(--s);flex-shrink:0}
-.orb-wrap::before{content:'';position:absolute;inset:-70%;border-radius:50%;pointer-events:none;background:radial-gradient(circle,rgba(255,255,255,.2) 0,rgba(255,255,255,.06) 32%,transparent 62%);animation:breathe 3.4s ease-in-out infinite}
-.orb{position:absolute;inset:0;border-radius:50%;overflow:hidden;isolation:isolate;
-  background:radial-gradient(circle at 36% 30%,#f2f2f2 0,#b9b9b9 14%,#5d5d5d 40%,#1a1a1a 70%,#070707 100%);
-  animation:morph 7s ease-in-out infinite,breathe 3.4s ease-in-out infinite}
-.orb i{position:absolute;border-radius:50%;filter:blur(calc(var(--s)*.085))}
-.orb .b1{width:72%;height:72%;left:-12%;top:-8%;background:radial-gradient(circle,rgba(255,255,255,.9),transparent 68%);animation:sw1 5.2s ease-in-out infinite}
-.orb .b2{width:62%;height:62%;right:-10%;bottom:-8%;background:radial-gradient(circle,rgba(190,190,190,.6),transparent 70%);animation:sw2 6.6s ease-in-out infinite}
-.orb .b3{width:48%;height:48%;left:28%;top:34%;background:radial-gradient(circle,rgba(255,255,255,.7),transparent 70%);animation:sw3 4.3s ease-in-out infinite}
-.orb::after{content:'';position:absolute;inset:0;border-radius:inherit;mix-blend-mode:overlay;
-  background:radial-gradient(circle at 30% 22%,rgba(255,255,255,.7),transparent 40%)}
-.ring{position:absolute;inset:0;border-radius:50%;border:1px solid rgba(255,255,255,.4);opacity:0;animation:ring 3.6s ease-out infinite}
-.ring:nth-of-type(2){animation-delay:1.2s}.ring:nth-of-type(3){animation-delay:2.4s}
-.o{position:absolute;inset:-32%;animation:spin 7s linear infinite}
-.o i{position:absolute;top:0;left:50%;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;background:#fff;box-shadow:0 0 12px 2px rgba(255,255,255,.8)}
-.o2{inset:-46%;animation-duration:11s;animation-direction:reverse}.o2 i{width:3px;height:3px;opacity:.7}
-.o3{inset:-58%;animation-duration:16s}.o3 i{width:2px;height:2px;opacity:.5}
-@keyframes spin{to{transform:rotate(360deg)}}
-@keyframes ring{0%{transform:scale(1);opacity:.5}100%{transform:scale(1.9);opacity:0}}
-@keyframes breathe{50%{transform:scale(1.07)}}
-@keyframes morph{
-  0%,100%{border-radius:50%}
-  25%{border-radius:47% 53% 52% 48%/52% 46% 54% 48%}
-  50%{border-radius:53% 47% 46% 54%/46% 54% 48% 52%}
-  75%{border-radius:48% 52% 55% 45%/54% 50% 50% 46%}}
-@keyframes sw1{33%{transform:translate(38%,22%) scale(1.18)}66%{transform:translate(10%,48%) scale(.9)}}
-@keyframes sw2{33%{transform:translate(-40%,-18%) scale(1.15)}66%{transform:translate(-12%,-44%) scale(.92)}}
-@keyframes sw3{33%{transform:translate(-30%,20%) scale(1.3)}66%{transform:translate(28%,-22%) scale(.8)}}
+/* ================= thinking orbs (canvas, drawn by the thinking-orbs engine) ================= */
+.orb-wrap{--s:64px;position:relative;width:var(--s);height:var(--s);flex-shrink:0}
+.orb-wrap::before{content:'';position:absolute;inset:-60%;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle,rgba(255,255,255,.13) 0,rgba(255,255,255,.04) 36%,transparent 62%);animation:breathe 4.2s ease-in-out infinite}
+.orb-wrap canvas{position:relative;display:block;width:100%;height:100%}
+@keyframes breathe{50%{transform:scale(1.1)}}
 
 /* ================= header ================= */
 .site-header{position:sticky;top:0;z-index:50;background:rgba(5,5,5,.55);
@@ -81,8 +58,7 @@ main{flex:1;position:relative;z-index:2}
 .site-header.scrolled{border-bottom-color:var(--line);background:rgba(5,5,5,.78)}
 .nav-inner{max-width:1180px;margin:0 auto;padding:14px 28px;display:flex;align-items:center;justify-content:space-between;gap:24px}
 .brand{display:flex;align-items:center;gap:11px;font-weight:600;letter-spacing:.02em;font-size:15px;flex-shrink:0}
-.brand .orb-wrap{--s:16px}
-.brand .orb-wrap::before{inset:-90%}
+.brand .orb-wrap::before,.site-footer .orb-wrap::before{display:none}
 .links{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .links::-webkit-scrollbar{display:none}
 .links a{position:relative;font-size:13.5px;color:var(--fg-1);padding:8px 13px;white-space:nowrap;transition:color .3s}
@@ -153,15 +129,15 @@ html:not(.js) .reveal,html:not(.js) .reveal-title span{opacity:1;transform:none;
 .back{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--fg-2);margin-bottom:26px;transition:color .3s,gap .4s var(--ease)}
 .back:hover{color:#fff;gap:12px}
 .empty{border:1px dashed var(--line-2);border-radius:24px;padding:72px 28px;text-align:center;color:var(--fg-1);background:rgba(255,255,255,.015)}
-.empty .orb-wrap{--s:46px;margin:0 auto 22px}
+.empty .orb-wrap{margin:0 auto 22px}
 .empty strong{display:block;font-family:var(--serif);font-weight:400;font-size:28px;color:#fff;margin-bottom:6px}
 
 /* ================= home ================= */
 .hero{position:relative;min-height:min(82vh,760px);display:flex;flex-direction:column;justify-content:center;padding:70px 0 40px}
-.hero-orb{position:absolute;right:2%;top:50%;margin-top:calc(var(--s)/-2);--s:clamp(190px,27vw,340px);
+.hero-orb{position:absolute;right:1%;top:50%;margin-top:calc(var(--s)/-2);--s:clamp(260px,35vw,440px);
   transform:translate3d(calc(var(--px)*22px),calc(var(--py)*22px),0);transition:transform .9s var(--ease)}
-.hero-orb .orb-wrap{--s:clamp(190px,27vw,340px)}
-@media (max-width:900px){.hero-orb{opacity:.28;right:-14%}}
+.hero-orb .orb-wrap{--s:inherit}
+@media (max-width:900px){.hero-orb{opacity:.3;right:-14%}}
 .hero h1{font-family:var(--serif);font-weight:400;font-size:clamp(104px,21vw,250px);line-height:.86;letter-spacing:-.045em;margin:24px 0 30px;color:#fff;
   text-shadow:0 0 70px rgba(255,255,255,.18)}
 .lede{max-width:560px;font-size:clamp(17px,2.3vw,21px);line-height:1.55;color:var(--fg-1);margin:0 0 36px;position:relative}
@@ -268,14 +244,11 @@ html:not(.js) .reveal,html:not(.js) .reveal-title span{opacity:1;transform:none;
 .copy.done{background:#fff;color:#050505}
 
 .site-footer{position:relative;z-index:2;display:flex;align-items:center;justify-content:center;gap:12px;padding:34px 20px 48px;color:var(--fg-2);font-size:12.5px;border-top:1px solid var(--line)}
-.site-footer .orb-wrap{--s:10px}
-.site-footer .orb-wrap::before{inset:-90%}
 
 /* ================= reduced motion ================= */
 @media (prefers-reduced-motion:reduce){
-  html{scroll-behavior:auto}
   .reveal,.reveal-title span{opacity:1!important;transform:none!important;filter:none!important;transition:none!important}
-  .bg i,.orb,.orb i,.ring,.o,.track,.kicker .dot,.rotator span{animation:none!important}
+  .bg i,.orb-wrap::before,.track,.kicker .dot,.rotator span{animation:none!important}
   .rotator span:first-child{opacity:1}
   @view-transition{navigation:none}
 }

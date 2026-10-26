@@ -1,14 +1,9 @@
 ---
+import Orb from './Orb.astro';
 ---
 <div id="splash" role="presentation">
   <div class="sp-stage">
-    <div class="orb-wrap sp-orb">
-      <span class="ring"></span><span class="ring"></span><span class="ring"></span>
-      <span class="o o1"><i></i></span>
-      <span class="o o2"><i></i></span>
-      <span class="o o3"><i></i></span>
-      <div class="orb"><i class="b1"></i><i class="b2"></i><i class="b3"></i></div>
-    </div>
+    <Orb class="sp-orb" size="clamp(190px,32vmin,270px)" state="working" />
 
     <div class="sp-think" aria-live="off">
       <span class="ph p1">Thinking<em class="dots"><i></i><i></i><i></i></em></span>
@@ -49,8 +44,8 @@
   #splash.skip{animation:none;opacity:0;visibility:hidden;transition:opacity .5s ease,visibility 0s .5s}
   .no-splash #splash{display:none}
 
-  .sp-stage{display:flex;flex-direction:column;align-items:center;gap:clamp(96px,14vh,124px)}
-  .sp-orb{--s:clamp(120px,22vmin,168px);animation:sp-in 1.1s var(--ease) both,sp-orb-out .8s cubic-bezier(.6,0,.2,1) 3.05s forwards}
+  .sp-stage{display:flex;flex-direction:column;align-items:center;gap:clamp(64px,10vh,92px)}
+  .sp-orb{animation:sp-in 1.1s var(--ease) both,sp-orb-out .8s cubic-bezier(.6,0,.2,1) 3.05s forwards}
   @keyframes sp-in{from{opacity:0;transform:scale(.55);filter:blur(18px)}to{opacity:1;transform:none;filter:none}}
   @keyframes sp-orb-out{to{transform:scale(1.9);opacity:0;filter:blur(14px)}}
 
