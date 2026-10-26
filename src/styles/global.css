@@ -186,7 +186,7 @@ html:not(.js) .reveal,html:not(.js) .reveal-title span{opacity:1;transform:none;
 .home-grid{padding-bottom:90px}
 
 /* ================= category ================= */
-.cat{padding:48px 0 100px}
+.cat{padding-top:48px;padding-bottom:100px}
 .cat-head{margin-bottom:46px}
 .cat-head h1{font-family:var(--serif);font-weight:400;font-size:clamp(54px,10vw,112px);line-height:.95;letter-spacing:-.03em;margin:0 0 20px}
 .cat-desc{color:var(--fg-1);font-size:17px;max-width:600px;margin:0 0 20px}
