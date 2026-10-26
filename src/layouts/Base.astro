@@ -1,45 +1,57 @@
 ---
-import '@fontsource/press-start-2p';
-import '@fontsource/vt323';
+import '@fontsource-variable/inter';
+import '@fontsource/instrument-serif';
 import '@fontsource-variable/jetbrains-mono';
 import '../styles/global.css';
 import Header from '../components/Header.astro';
 import Splash from '../components/Splash.astro';
 
-interface Props { title?: string; description?: string; }
-const { title, description = 'PRC — a living reference for playbooks, research notes, known issues, commands, Kubernetes and Linux.' } = Astro.props;
+interface Props { title?: string; description?: string; progress?: boolean; }
+const { title, description = 'PRC — a living reference for playbooks, research notes, known issues, commands, scripts, Kubernetes and Linux.', progress = false } = Astro.props;
 const pageTitle = title ? `${title} · PRC` : 'PRC';
 const path = Astro.url.pathname;
 ---
 <!doctype html>
-<html lang="en">
+<html lang="en" class="no-js-yet">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>{pageTitle}</title>
     <meta name="description" content={description} />
-    <meta name="theme-color" content="#07061a" />
+    <meta name="theme-color" content="#050505" />
     <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={description} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <!-- show the splash once per browser session; runs before first paint -->
+    <!-- runs before first paint: enables reveal animations, and shows the splash once per session -->
     <script is:inline>
-      try {
-        if (sessionStorage.getItem('prc-splash')) document.documentElement.classList.add('no-splash');
-        else sessionStorage.setItem('prc-splash', '1');
-      } catch (e) {}
+      (function () {
+        var r = document.documentElement;
+        r.className = 'js';
+        try {
+          if (sessionStorage.getItem('prc-splash')) r.classList.add('no-splash');
+          else sessionStorage.setItem('prc-splash', '1');
+        } catch (e) { r.classList.add('no-splash'); }
+      })();
     </script>
   </head>
   <body>
     <Splash />
-    <div class="bg" aria-hidden="true"><div class="bg-stars"></div><div class="bg-floor"><i></i></div></div>
-    <div class="crt" aria-hidden="true"></div>
+    <div class="bg" aria-hidden="true"><i></i><i></i></div>
+    <div class="cursor-glow" aria-hidden="true"></div>
+    <div class="grain" aria-hidden="true"></div>
+    {progress && <div class="progress" aria-hidden="true"></div>}
     <Header path={path} />
     <main><slot /></main>
-    <footer class="site-footer">© PRC · CREDIT <b>01</b> · A LIVING REFERENCE</footer>
+    <footer class="site-footer">
+      <div class="orb-wrap"><div class="orb"><i class="b1"></i><i class="b2"></i><i class="b3"></i></div></div>
+      PRC — a living reference
+    </footer>
 
     <script>
-      // copy buttons on every code block
+      const root = document.documentElement;
+      const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      // ---- copy buttons
       document.querySelectorAll('.prose pre').forEach((pre) => {
         const btn = document.createElement('button');
         btn.type = 'button';
@@ -48,7 +60,7 @@ const path = Astro.url.pathname;
         btn.setAttribute('aria-label', 'Copy code');
         btn.addEventListener('click', async () => {
           try {
-            await navigator.clipboard.writeText(pre.querySelector('code')?.innerText ?? pre.innerText);
+            await navigator.clipboard.writeText((pre.querySelector('code') as HTMLElement)?.innerText ?? pre.innerText);
             btn.textContent = 'Copied';
             btn.classList.add('done');
             setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('done'); }, 1600);
@@ -56,6 +68,74 @@ const path = Astro.url.pathname;
         });
         pre.appendChild(btn);
       });
+
+      // ---- scroll reveal (waits for the splash on the first visit)
+      document.querySelectorAll('.prose > *, .prose ol > li, .guide-head > *').forEach((el) => el.classList.add('reveal'));
+      let started = false;
+      function start() {
+        if (started) return;
+        started = true;
+        const els = Array.from(document.querySelectorAll('.reveal, .reveal-title, .section-head'));
+        if (reduce || !('IntersectionObserver' in window)) { els.forEach((e) => e.classList.add('in')); return; }
+        const io = new IntersectionObserver((entries) => {
+          let n = 0;
+          entries.forEach((e) => {
+            if (!e.isIntersecting) return;
+            const el = e.target as HTMLElement;
+            if (!el.style.getPropertyValue('--i')) el.style.setProperty('--i', String(Math.min(n++, 8)));
+            el.classList.add('in');
+            io.unobserve(el);
+          });
+        }, { threshold: 0.1, rootMargin: '0px 0px -5% 0px' });
+        els.forEach((e) => io.observe(e));
+      }
+      if (root.classList.contains('no-splash')) start();
+      else {
+        window.addEventListener('splash:done', start, { once: true });
+        setTimeout(start, 3700); // safety net
+      }
+
+      // ---- header state + reading progress
+      const header = document.querySelector('.site-header');
+      const bar = document.querySelector('.progress') as HTMLElement | null;
+      let ticking = false;
+      function onScroll() {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(() => {
+          header?.classList.toggle('scrolled', scrollY > 8);
+          if (bar) {
+            const max = document.documentElement.scrollHeight - innerHeight;
+            bar.style.setProperty('--p', String(max > 0 ? Math.min(scrollY / max, 1) : 0));
+          }
+          ticking = false;
+        });
+      }
+      addEventListener('scroll', onScroll, { passive: true });
+      onScroll();
+
+      // ---- cursor glow, hero-orb parallax, card spotlight (fine pointers only)
+      if (!reduce && matchMedia('(hover: hover) and (pointer: fine)').matches) {
+        const glow = document.querySelector('.cursor-glow') as HTMLElement | null;
+        let tx = innerWidth / 2, ty = innerHeight / 3, x = tx, y = ty;
+        addEventListener('pointermove', (e) => {
+          tx = e.clientX; ty = e.clientY;
+          glow?.classList.add('on');
+          root.style.setProperty('--px', ((e.clientX / innerWidth) * 2 - 1).toFixed(3));
+          root.style.setProperty('--py', ((e.clientY / innerHeight) * 2 - 1).toFixed(3));
+          const card = (e.target as HTMLElement).closest?.('.card') as HTMLElement | null;
+          if (card) {
+            const r = card.getBoundingClientRect();
+            card.style.setProperty('--mx', e.clientX - r.left + 'px');
+            card.style.setProperty('--my', e.clientY - r.top + 'px');
+          }
+        }, { passive: true });
+        (function loop() {
+          x += (tx - x) * 0.08; y += (ty - y) * 0.08;
+          if (glow) glow.style.transform = `translate3d(${x - 280}px,${y - 280}px,0)`;
+          requestAnimationFrame(loop);
+        })();
+      }
     </script>
   </body>
 </html>

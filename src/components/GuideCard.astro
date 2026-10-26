@@ -1,10 +1,19 @@
 ---
-const { href, index, icon, title, summary, tag } = Astro.props;
+const { href, index, icon, title, summary, tag, i = 0 } = Astro.props;
 ---
-<a class="card" href={href}>
-  <span class="card-index">{index}</span>
-  <div class="card-icon">{icon}</div>
-  <h3>{title}</h3>
-  <p>{summary}</p>
-  <span class="tag">{tag}</span>
+<a class="card reveal" href={href} style={`--i:${i}`}>
+  <div class="card-top">
+    <div class="card-icon">{icon}</div>
+    <div class="card-arrow">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg>
+    </div>
+  </div>
+  <div>
+    <h3>{title}</h3>
+    <p>{summary}</p>
+  </div>
+  <div class="card-foot">
+    <span class="pill">{tag}</span>
+    <span class="card-index">{index}</span>
+  </div>
 </a>

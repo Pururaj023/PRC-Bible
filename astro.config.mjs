@@ -4,6 +4,6 @@ export default defineConfig({
   output: 'static',
   prefetch: { prefetchAll: true, defaultStrategy: 'hover' },
   markdown: {
-    shikiConfig: { theme: 'synthwave-84', wrap: false },
+    shikiConfig: { theme: 'vitesse-black', wrap: false },
   },
 });

@@ -2,7 +2,7 @@
 import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import GuideCard from '../../components/GuideCard.astro';
-import { categories, getCategory, indexOf } from '../../data/categories';
+import { categories, getCategory } from '../../data/categories';
 
 export function getStaticPaths() {
   return categories.map((c) => ({ params: { category: c.slug } }));
@@ -15,21 +15,22 @@ const guides = (await getCollection('guides'))
 ---
 <Base title={cat.title} description={cat.desc}>
   <div class="wrap cat">
-    <a class="back" href="/">◀ BACK</a>
+    <a class="back reveal" href="/">← Home</a>
     <div class="cat-head">
-      <div class="cat-title">
-        <h1>{cat.title}</h1>
-        <span class="idx">STAGE {indexOf(cat.slug)}/{String(categories.length).padStart(2, '0')}</span>
-      </div>
-      <p class="cat-desc">{cat.desc}</p>
+      <h1 class="reveal-title" aria-label={cat.title}>
+        {cat.title.split(' ').map((w, i) => <><span style={`--i:${i + 1}`}>{w}</span>{' '}</>)}
+      </h1>
+      <p class="cat-desc reveal blur" style="--i:3">{cat.desc}</p>
+      <span class="pill reveal" style="--i:4">{guides.length} {guides.length === 1 ? 'guide' : 'guides'}</span>
     </div>
 
     {guides.length ? (
-      <div class="auto-grid">
+      <div class="grid">
         {guides.map((g, i) => (
           <GuideCard
+            i={i}
             href={`/${cat.slug}/${g.id}/`}
-            index={`LEVEL ${String(i + 1).padStart(2, '0')}`}
+            index={String(i + 1).padStart(2, '0')}
             icon={g.data.icon}
             title={g.data.title}
             summary={g.data.summary}
@@ -38,10 +39,10 @@ const guides = (await getCollection('guides'))
         ))}
       </div>
     ) : (
-      <div class="empty">
-        <div class="ico">🗂️</div>
-        <strong>NO CARTRIDGES YET</strong>
-        Share a doc and it'll show up here as a card.
+      <div class="empty reveal" style="--i:5">
+        <div class="orb-wrap"><div class="orb"><i class="b1"></i><i class="b2"></i><i class="b3"></i></div></div>
+        <strong>Nothing here yet</strong>
+        Share a doc and it will appear as a card.
       </div>
     )}
   </div>

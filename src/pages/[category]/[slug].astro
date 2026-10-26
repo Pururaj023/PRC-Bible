@@ -11,23 +11,21 @@ const { entry } = Astro.props;
 const cat = getCategory(entry.data.category);
 const { Content } = await render(entry);
 ---
-<Base title={entry.data.title} description={entry.data.summary}>
+<Base title={entry.data.title} description={entry.data.summary} progress>
   <div class="wrap">
     <div class="guide-page">
-      <a class="back" href={`/${cat.slug}/`}>◀ BACK TO {cat.title.toUpperCase()}</a>
-      <article class="guide">
-        <header class="guide-head">
-          <div class="guide-eyebrow">{cat.title} &nbsp;/&nbsp; {entry.data.tag}</div>
-          <h1>{entry.data.title}</h1>
-          {entry.data.meta.length > 0 && (
-            <div class="chips">
-              {entry.data.meta.map((m) => <span class="chip">{m.label}: <b>{m.value}</b></span>)}
-            </div>
-          )}
-        </header>
-        <div class="guide-body prose">
-          <Content />
-        </div>
+      <a class="back reveal" href={`/${cat.slug}/`}>← {cat.title}</a>
+      <header class="guide-head">
+        <div class="guide-eyebrow">{cat.title} / {entry.data.tag}</div>
+        <h1>{entry.data.title}</h1>
+        {entry.data.meta.length > 0 && (
+          <div class="chips">
+            {entry.data.meta.map((m) => <span class="chip">{m.label} <b>{m.value}</b></span>)}
+          </div>
+        )}
+      </header>
+      <article class="prose">
+        <Content />
       </article>
     </div>
   </div>

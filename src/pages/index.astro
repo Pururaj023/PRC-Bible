@@ -12,37 +12,60 @@ const index = guides.map((g) => ({
   href: `/${g.data.category}/${g.id}/`,
 }));
 const count = (slug: string) => guides.filter((g) => g.data.category === slug).length;
+const topics = ['Kubernetes', 'Argo CD', 'KEDA', 'Azure Event Hub', 'Kafka', 'AKS', 'ELK Stack', 'Nginx', 'Helm', 'GitHub Actions', 'HPA', 'Linux'];
 ---
 <Base>
   <div class="wrap">
     <section class="hero">
-      <span class="eyebrow">Insert coin</span>
-      <h1>PRC</h1>
-      <p class="lede">One place for everything that keeps a PR moving — playbooks, research notes, known issues, the commands you always forget, and the Kubernetes &amp; Linux incantations that save the day.</p>
-      <div class="hero-actions">
-        <a class="btn btn-primary" href="/how-to/">▶ Press start</a>
+      <div class="hero-orb" aria-hidden="true">
+        <div class="orb-wrap">
+          <span class="ring"></span><span class="ring"></span><span class="ring"></span>
+          <span class="o o1"><i></i></span><span class="o o2"><i></i></span><span class="o o3"><i></i></span>
+          <div class="orb"><i class="b1"></i><i class="b2"></i><i class="b3"></i></div>
+        </div>
+      </div>
+
+      <p class="kicker reveal blur" style="--i:0"><span class="dot"></span> Living reference</p>
+      <h1 class="reveal-title" aria-label="PRC"><span style="--i:1">P</span><span style="--i:2">R</span><span style="--i:3">C</span></h1>
+      <p class="lede reveal blur" style="--i:4">
+        One place for your
+        <span class="rotator" aria-hidden="true"><span>playbooks</span><span>runbooks</span><span>commands</span><span>scripts</span></span>,
+        kept sharp and one search away.
+      </p>
+      <div class="hero-actions reveal" style="--i:5">
+        <a class="btn btn-primary" href="/how-to/">Browse guides
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </a>
         <a class="btn" href="/scripts/">Scripts</a>
       </div>
     </section>
 
-    <div class="search" id="search">
+    <div class="marquee reveal" aria-hidden="true">
+      <div class="track">
+        <span>{topics.map((t) => <span>{t}</span>)}</span>
+        <span>{topics.map((t) => <span>{t}</span>)}</span>
+      </div>
+    </div>
+
+    <div class="search reveal" id="search">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-      <input id="q" type="search" placeholder="Search guides..." autocomplete="off" aria-label="Search guides" />
+      <input id="q" type="search" placeholder="Search every guide" autocomplete="off" aria-label="Search guides" />
       <kbd>/</kbd>
       <div class="results" id="results" hidden></div>
     </div>
 
     <section class="home-grid">
-      <p class="section-label">Select stage</p>
-      <div class="card-grid">
+      <p class="section-head">Sections</p>
+      <div class="grid">
         {categories.map((c, i) => (
           <GuideCard
+            i={i}
             href={`/${c.slug}/`}
-            index={`STAGE ${String(i + 1).padStart(2, '0')}`}
+            index={String(i + 1).padStart(2, '0')}
             icon={c.icon}
             title={c.title}
             summary={c.blurb}
-            tag={count(c.slug) ? `${c.tag} · ${count(c.slug)}` : c.tag}
+            tag={count(c.slug) ? `${count(c.slug)} ${count(c.slug) === 1 ? 'guide' : 'guides'}` : 'Coming soon'}
           />
         ))}
       </div>
@@ -60,7 +83,7 @@ const count = (slug: string) => guides.filter((g) => g.data.category === slug).l
       const hits = index.filter((g) => (g.title + ' ' + g.summary + ' ' + g.cat).toLowerCase().includes(t)).slice(0, 6);
       box.innerHTML = hits.length
         ? hits.map((g) => `<a href="${g.href}"><b>${esc(g.title)}</b><span>${esc(g.cat)} — ${esc(g.summary)}</span></a>`).join('')
-        : '<div class="none">No guides match that yet.</div>';
+        : '<div class="none">Nothing matches that yet.</div>';
       box.hidden = false; sel = -1;
     }
     q.addEventListener('input', render);

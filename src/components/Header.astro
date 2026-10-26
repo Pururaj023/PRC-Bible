@@ -4,7 +4,10 @@ const { path } = Astro.props;
 ---
 <header class="site-header">
   <div class="nav-inner">
-    <a class="brand" href="/"><span class="brand-mark"></span> PRC</a>
+    <a class="brand" href="/" aria-label="PRC home">
+      <div class="orb-wrap"><div class="orb"><i class="b1"></i><i class="b2"></i><i class="b3"></i></div></div>
+      PRC
+    </a>
     <nav class="links" aria-label="Sections">
       {categories.map((c) => (
         <a href={`/${c.slug}/`} aria-current={path.startsWith(`/${c.slug}/`) ? 'page' : undefined}>{c.nav}</a>
