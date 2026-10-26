@@ -1,5 +1,5 @@
 export interface Category {
-  slug: 'how-to' | 'rnd' | 'issues' | 'commands' | 'k8s' | 'linux';
+  slug: 'how-to' | 'rnd' | 'issues' | 'commands' | 'scripts' | 'k8s' | 'linux';
   title: string;
   nav: string;
   icon: string;
@@ -21,6 +21,9 @@ export const categories: Category[] = [
   { slug: 'commands', title: 'Frequent Commands', nav: 'Commands', icon: '⌘', tag: 'Reference',
     blurb: 'The commands typed often enough to deserve a permanent home.',
     desc: 'The commands that get typed often enough to earn a permanent spot here.' },
+  { slug: 'scripts', title: 'Scripts', nav: 'Scripts', icon: '📜', tag: 'Toolbox',
+    blurb: 'Ready-to-run scripts for reporting, checks and day-to-day ops.',
+    desc: 'Ready-to-run scripts with what they do, what they need, and how to run them.' },
   { slug: 'k8s', title: 'K8s', nav: 'K8s', icon: '☸️', tag: 'Infra',
     blurb: 'Kubernetes cheatsheets, manifests, and debugging steps for a cluster having a bad day.',
     desc: 'Kubernetes reference: cluster ops, debugging, and manifests worth keeping around.' },

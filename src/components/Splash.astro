@@ -1,10 +1,237 @@
 ---
+// Pixel-art sprites drawn from ASCII grids, rendered as crisp SVG rects.
+const PAL: Record<string, string> = {
+  h: '#3a1d0b', r: '#ff3b3b', s: '#ffb27a', S: '#d98650', e: '#14141c',
+  B: '#2f5bff', b: '#1c2f9c', k: '#14141c', G: '#565c66', g: '#b4bbc8',
+  p: '#8a8fa3', W: '#ffffff', y: '#ffe600',
+};
+
+const runTop = [
+  '................',
+  '.......hhhh.....',
+  '......hhhhhh....',
+  '..rrrrrrrrrrr...',
+  '.rr...ssssesss..',
+  '......ssssssss..',
+  '......sssssSSS..',
+  '.......sssss....',
+  '......ssssss....',
+  '.....sssssssGGG.',
+  '.....ssssssGgggg',
+  '.....ssssss.GG..',
+  '.....sssssss....',
+  '......sssss.....',
+];
+const legsA = [
+  '......bbbbb.....',
+  '.....bBBBBBb....',
+  '....BBB...BBB...',
+  '...BBB.....BBB..',
+  '..BBB.......BB..',
+  '.kkkk.......kkk.',
+];
+const legsB = [
+  '......bbbbb.....',
+  '......BBBBB.....',
+  '.....BBB.BB.....',
+  '.....BB..BBB....',
+  '.....BB...BB....',
+  '....kkk...kkk...',
+];
+const spin = [
+  '....rrrr....',
+  '..rrssssBB..',
+  '.rssssssBBB.',
+  '.sssssBBBBB.',
+  'sssssBBBBBBk',
+  'ssssBBBBBBkk',
+  'sssBBBBBBBkk',
+  '.ssBBBBBBkk.',
+  '.sBBBBBBkk..',
+  '..BBBBBkk...',
+  '...BBBkk....',
+  '....kk......',
+];
+const hurdle = [
+  'rWrWrWrWrWrW',
+  'rWrWrWrWrWrW',
+  '.pp......pp.',
+  '.pp......pp.',
+  '.pp......pp.',
+  '.pp......pp.',
+  'kkkk....kkkk',
+];
+
+function rects(rows: string[]) {
+  const out: { x: number; y: number; w: number; fill: string }[] = [];
+  rows.forEach((row, y) => {
+    let x = 0;
+    while (x < row.length) {
+      const c = row[x];
+      let w = 1;
+      while (x + w < row.length && row[x + w] === c) w++;
+      if (c !== '.' && PAL[c]) out.push({ x, y, w, fill: PAL[c] });
+      x += w;
+    }
+  });
+  return out;
+}
+const frameA = rects([...runTop, ...legsA]);
+const frameB = rects([...runTop, ...legsB]);
+const ball = rects(spin);
+const bar = rects(hurdle);
+const RUN_W = 16, RUN_H = runTop.length + legsA.length;
+const stars = Array.from({ length: 28 }, (_, i) => ({
+  x: (i * 37 + 11) % 100, y: (i * 53 + 7) % 62, d: (i % 7) * 0.4, big: i % 5 === 0,
+}));
 ---
-<div id="splash" aria-hidden="true">
-  <div class="splash-inner">
-    <div class="orb"></div>
-    <h1 class="splash-title">PRC</h1>
-    <div class="splash-sub">Living reference</div>
-    <div class="splash-bar"><span></span></div>
+<div id="splash" role="presentation">
+  <div class="sp-stars" aria-hidden="true">
+    {stars.map((s) => <i class={s.big ? 'big' : ''} style={`left:${s.x}%;top:${s.y}%;animation-delay:${s.d}s`}></i>)}
+  </div>
+
+  <div class="sp-top"><span>1UP <b>000000</b></span><span>HI-SCORE <b>050000</b></span></div>
+
+  <div class="sp-center">
+    <h1 class="sp-title">PRC</h1>
+    <p class="sp-sub">STAGE 1 — GET READY!</p>
+
+    <div class="sp-scene" aria-hidden="true">
+      <div class="runner">
+        <div class="run">
+          <svg class="fr fr-a" viewBox={`0 0 ${RUN_W} ${RUN_H}`} shape-rendering="crispEdges">
+            {frameA.map((r) => <rect x={r.x} y={r.y} width={r.w} height="1" fill={r.fill} />)}
+          </svg>
+          <svg class="fr fr-b" viewBox={`0 0 ${RUN_W} ${RUN_H}`} shape-rendering="crispEdges">
+            {frameB.map((r) => <rect x={r.x} y={r.y} width={r.w} height="1" fill={r.fill} />)}
+          </svg>
+        </div>
+        <svg class="ball" viewBox="0 0 12 12" shape-rendering="crispEdges">
+          {ball.map((r) => <rect x={r.x} y={r.y} width={r.w} height="1" fill={r.fill} />)}
+        </svg>
+      </div>
+
+      {[0, 1, 2].map((i) => (
+        <svg class={`hurdle h${i}`} viewBox="0 0 12 7" shape-rendering="crispEdges">
+          {bar.map((r) => <rect x={r.x} y={r.y} width={r.w} height="1" fill={r.fill} />)}
+        </svg>
+      ))}
+      <div class="sp-ground"></div>
+    </div>
+
+    <div class="sp-load">
+      <span>LOADING</span>
+      <div class="sp-blocks" aria-hidden="true">
+        {Array.from({ length: 14 }, (_, i) => <i style={`animation-delay:${0.4 + i * 0.2}s`}></i>)}
+      </div>
+    </div>
+    <p class="sp-skip">TAP OR PRESS ANY KEY TO SKIP</p>
   </div>
 </div>
+
+<script is:inline>
+  (function () {
+    var s = document.getElementById('splash');
+    if (!s) return;
+    function skip() {
+      s.classList.add('skip');
+      document.removeEventListener('keydown', skip);
+    }
+    s.addEventListener('click', skip);
+    s.addEventListener('touchstart', skip, { passive: true });
+    document.addEventListener('keydown', skip);
+  })();
+</script>
+
+<style is:global>
+  #splash{
+    --u:4px;
+    position:fixed;inset:0;z-index:999;overflow:hidden;cursor:pointer;
+    background:linear-gradient(180deg,#0b0620 0%,#1a0b3d 55%,#2a0f4d 100%);
+    display:flex;flex-direction:column;
+    animation:crt-off .55s cubic-bezier(.7,0,.3,1) 4.05s forwards;
+  }
+  #splash.skip{display:none}
+  .no-splash #splash{display:none}
+  #splash::after{
+    content:'';position:absolute;inset:0;pointer-events:none;
+    background:repeating-linear-gradient(0deg,rgba(0,0,0,.28) 0 1px,transparent 1px 3px);
+  }
+  @media (max-width:600px){#splash{--u:3px}}
+
+  .sp-stars i{position:absolute;width:3px;height:3px;background:#fff;opacity:.2;animation:twinkle 1.6s steps(2) infinite}
+  .sp-stars i.big{width:5px;height:5px;background:#19f0ff}
+  @keyframes twinkle{50%{opacity:.95}}
+
+  .sp-top{position:relative;display:flex;justify-content:space-between;padding:18px 22px;
+    font-family:var(--font-pixel);font-size:clamp(9px,2.2vw,13px);color:#ff2bd6;letter-spacing:.04em}
+  .sp-top b{color:#fff;font-weight:400}
+
+  .sp-center{position:relative;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(10px,2.4vh,22px);padding-bottom:4vh}
+  .sp-title{margin:0;font-family:var(--font-pixel);font-weight:400;font-size:clamp(56px,16vw,132px);line-height:1;letter-spacing:.06em;
+    color:#ffe600;text-shadow:4px 4px 0 #ff2bd6,8px 8px 0 #5a1a8a,0 0 40px rgba(255,43,214,.55);
+    animation:title-in .6s steps(6) both}
+  .sp-sub{margin:0;font-family:var(--font-pixel);font-size:clamp(9px,2.4vw,14px);color:#19f0ff;letter-spacing:.08em;animation:blink 1s steps(2) .6s infinite}
+  @keyframes title-in{from{transform:translateY(-30px);opacity:0}to{transform:none;opacity:1}}
+  @keyframes blink{50%{opacity:.25}}
+
+  /* ----- the run ----- */
+  .sp-scene{position:relative;width:100%;height:calc(var(--u)*30);margin-top:2vh;--ground:calc(var(--u)*5)}
+  .sp-ground{position:absolute;left:0;right:0;bottom:0;height:var(--ground);
+    background:
+      repeating-linear-gradient(90deg,#19f0ff 0 3vw,transparent 3vw 10vw) 0 0/100% calc(var(--u)*1) no-repeat,
+      repeating-linear-gradient(90deg,#ff2bd6 0 5vw,#a3139a 5vw 10vw) 0 calc(var(--u)*1)/100% calc(var(--u)*2) no-repeat,
+      #1b0c3a;
+    border-top:calc(var(--u)*1) solid #ffe600;
+    animation:ground .1453s linear infinite;
+  }
+  @keyframes ground{to{background-position-x:-10vw,-10vw,0}}
+
+  .runner{position:absolute;left:20%;bottom:var(--ground);width:calc(var(--u)*16);height:calc(var(--u)*20);
+    animation:jumps 3.6s linear both}
+  .run,.ball{position:absolute}
+  .run{inset:0;animation:run-vis 3.6s step-end both}
+  .ball{left:calc(var(--u)*2);bottom:calc(var(--u)*3);width:calc(var(--u)*12);height:calc(var(--u)*12);
+    opacity:0;animation:ball-vis 3.6s step-end both,spin .22s linear infinite}
+  .fr{position:absolute;inset:0;width:100%;height:100%}
+  .fr-b{animation:legs .24s step-end infinite}
+  .fr-a{animation:legs-inv .24s step-end infinite}
+  @keyframes legs{0%{opacity:0}50%{opacity:1}}
+  @keyframes legs-inv{0%{opacity:1}50%{opacity:0}}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* jump arcs timed to each hurdle passing the runner */
+  @keyframes jumps{
+    0%,36.25%{transform:translateY(0);animation-timing-function:cubic-bezier(.15,.7,.4,1)}
+    44.03%{transform:translateY(calc(var(--u)*-17));animation-timing-function:cubic-bezier(.6,0,.85,.3)}
+    51.81%,52.92%{transform:translateY(0);animation-timing-function:cubic-bezier(.15,.7,.4,1)}
+    60.69%{transform:translateY(calc(var(--u)*-17));animation-timing-function:cubic-bezier(.6,0,.85,.3)}
+    68.47%,69.58%{transform:translateY(0);animation-timing-function:cubic-bezier(.15,.7,.4,1)}
+    77.36%{transform:translateY(calc(var(--u)*-17));animation-timing-function:cubic-bezier(.6,0,.85,.3)}
+    85.14%,100%{transform:translateY(0)}
+  }
+  @keyframes run-vis{0%{opacity:1}36.25%{opacity:0}51.81%{opacity:1}52.92%{opacity:0}68.47%{opacity:1}69.58%{opacity:0}85.14%{opacity:1}}
+  @keyframes ball-vis{0%{opacity:0}36.25%{opacity:1}51.81%{opacity:0}52.92%{opacity:1}68.47%{opacity:0}69.58%{opacity:1}85.14%{opacity:0}}
+
+  .hurdle{position:absolute;bottom:var(--ground);left:105%;width:calc(var(--u)*12);height:calc(var(--u)*7);animation:hurdle 1.7s linear both}
+  .h0{animation-delay:.35s}.h1{animation-delay:.95s}.h2{animation-delay:1.55s}
+  @keyframes hurdle{from{left:105%}to{left:-12%}}
+
+  .sp-load{display:flex;align-items:center;gap:14px;font-family:var(--font-pixel);font-size:clamp(9px,2.2vw,12px);color:#39ff14}
+  .sp-blocks{display:flex;gap:4px}
+  .sp-blocks i{width:calc(var(--u)*2.5);height:calc(var(--u)*3.5);background:#1f1a38;animation:lit .01s linear both}
+  @keyframes lit{to{background:#39ff14;box-shadow:0 0 8px #39ff14}}
+  .sp-skip{margin:0;font-family:var(--font-pixel);font-size:8px;color:#6f69a8;letter-spacing:.06em}
+
+  @keyframes crt-off{
+    0%{transform:none;opacity:1;filter:none}
+    55%{transform:scale(1,.01);opacity:1;filter:brightness(3)}
+    100%{transform:scale(0,.01);opacity:0;visibility:hidden;pointer-events:none}
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    #splash{animation:crt-off .3s linear 1.2s forwards}
+    .runner,.run,.ball,.fr,.hurdle,.sp-ground{animation:none!important}
+    .run{opacity:1}.fr-b{opacity:0}.hurdle{left:55%}.h1,.h2{display:none}
+  }
+</style>

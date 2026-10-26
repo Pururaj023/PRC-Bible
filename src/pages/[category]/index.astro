@@ -15,11 +15,11 @@ const guides = (await getCollection('guides'))
 ---
 <Base title={cat.title} description={cat.desc}>
   <div class="wrap cat">
-    <a class="back" href="/">← Back to home</a>
+    <a class="back" href="/">◀ BACK</a>
     <div class="cat-head">
       <div class="cat-title">
         <h1>{cat.title}</h1>
-        <span class="idx">{indexOf(cat.slug)} / {String(categories.length).padStart(2, '0')}</span>
+        <span class="idx">STAGE {indexOf(cat.slug)}/{String(categories.length).padStart(2, '0')}</span>
       </div>
       <p class="cat-desc">{cat.desc}</p>
     </div>
@@ -29,7 +29,7 @@ const guides = (await getCollection('guides'))
         {guides.map((g, i) => (
           <GuideCard
             href={`/${cat.slug}/${g.id}/`}
-            index={String(i + 1).padStart(2, '0')}
+            index={`LEVEL ${String(i + 1).padStart(2, '0')}`}
             icon={g.data.icon}
             title={g.data.title}
             summary={g.data.summary}
@@ -40,7 +40,7 @@ const guides = (await getCollection('guides'))
     ) : (
       <div class="empty">
         <div class="ico">🗂️</div>
-        <strong>No integrations yet</strong>
+        <strong>NO CARTRIDGES YET</strong>
         Share a doc and it'll show up here as a card.
       </div>
     )}

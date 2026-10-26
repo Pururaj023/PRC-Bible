@@ -14,7 +14,7 @@ const { Content } = await render(entry);
 <Base title={entry.data.title} description={entry.data.summary}>
   <div class="wrap">
     <div class="guide-page">
-      <a class="back" href={`/${cat.slug}/`}>← Back to {cat.title}</a>
+      <a class="back" href={`/${cat.slug}/`}>◀ BACK TO {cat.title.toUpperCase()}</a>
       <article class="guide">
         <header class="guide-head">
           <div class="guide-eyebrow">{cat.title} &nbsp;/&nbsp; {entry.data.tag}</div>

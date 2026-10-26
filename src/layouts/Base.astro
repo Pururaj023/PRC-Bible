@@ -1,6 +1,6 @@
 ---
-import '@fontsource-variable/inter';
-import '@fontsource-variable/space-grotesk';
+import '@fontsource/press-start-2p';
+import '@fontsource/vt323';
 import '@fontsource-variable/jetbrains-mono';
 import '../styles/global.css';
 import Header from '../components/Header.astro';
@@ -18,7 +18,7 @@ const path = Astro.url.pathname;
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>{pageTitle}</title>
     <meta name="description" content={description} />
-    <meta name="theme-color" content="#06080d" />
+    <meta name="theme-color" content="#07061a" />
     <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={description} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -32,11 +32,11 @@ const path = Astro.url.pathname;
   </head>
   <body>
     <Splash />
-    <div class="glow" aria-hidden="true"><i></i><i></i><i></i></div>
-    <div class="noise" aria-hidden="true"></div>
+    <div class="bg" aria-hidden="true"><div class="bg-stars"></div><div class="bg-floor"><i></i></div></div>
+    <div class="crt" aria-hidden="true"></div>
     <Header path={path} />
     <main><slot /></main>
-    <footer class="site-footer">PRC — a living reference, updated as it grows.</footer>
+    <footer class="site-footer">© PRC · CREDIT <b>01</b> · A LIVING REFERENCE</footer>
 
     <script>
       // copy buttons on every code block

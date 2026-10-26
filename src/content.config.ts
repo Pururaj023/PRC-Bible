@@ -6,7 +6,7 @@ const guides = defineCollection({
   schema: z.object({
     title: z.string(),
     summary: z.string(),
-    category: z.enum(['how-to', 'rnd', 'issues', 'commands', 'k8s', 'linux']),
+    category: z.enum(['how-to', 'rnd', 'issues', 'commands', 'scripts', 'k8s', 'linux']),
     icon: z.string().default('📄'),
     tag: z.string().default('Guide'),
     order: z.number().default(100),

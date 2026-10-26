@@ -16,29 +16,29 @@ const count = (slug: string) => guides.filter((g) => g.data.category === slug).l
 <Base>
   <div class="wrap">
     <section class="hero">
-      <span class="eyebrow">Living reference · work in progress</span>
+      <span class="eyebrow">Insert coin</span>
       <h1>PRC</h1>
       <p class="lede">One place for everything that keeps a PR moving — playbooks, research notes, known issues, the commands you always forget, and the Kubernetes &amp; Linux incantations that save the day.</p>
       <div class="hero-actions">
-        <a class="btn btn-primary" href="/how-to/">Jump into the sections</a>
-        <a class="btn btn-ghost" href="/commands/">Frequent commands</a>
+        <a class="btn btn-primary" href="/how-to/">▶ Press start</a>
+        <a class="btn" href="/scripts/">Scripts</a>
       </div>
     </section>
 
     <div class="search" id="search">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-      <input id="q" type="search" placeholder="Search guides…" autocomplete="off" aria-label="Search guides" />
+      <input id="q" type="search" placeholder="Search guides..." autocomplete="off" aria-label="Search guides" />
       <kbd>/</kbd>
       <div class="results" id="results" hidden></div>
     </div>
 
     <section class="home-grid">
-      <p class="section-label">// contents</p>
+      <p class="section-label">Select stage</p>
       <div class="card-grid">
         {categories.map((c, i) => (
           <GuideCard
             href={`/${c.slug}/`}
-            index={String(i + 1).padStart(2, '0')}
+            index={`STAGE ${String(i + 1).padStart(2, '0')}`}
             icon={c.icon}
             title={c.title}
             summary={c.blurb}
