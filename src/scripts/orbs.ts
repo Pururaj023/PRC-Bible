@@ -28,7 +28,7 @@ function scaleRadii(opts: any, scale: number) {
 // Count/size multipliers of each state's 64px preset. Large orbs undo them to get the full-density design.
 const P64: Record<string, [number, number]> = {
   working: [1, 1], searching: [0.42, 1.15], solving: [0.35, 1.05], listening: [0.341, 1], connecting: [1.35, 0.95],
-  weaving: [0.5, 1], composing: [0.25, 0.85], breathing: [0.25, 0.956], shaping: [0.702, 0.395],
+  weaving: [0.5, 1], composing: [0.25, 0.85], breathing: [0.25, 0.956], shaping: [0.702, 1],
 };
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 

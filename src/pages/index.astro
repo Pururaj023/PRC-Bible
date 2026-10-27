@@ -18,7 +18,12 @@ const topics = ['Kubernetes', 'Argo CD', 'KEDA', 'Azure Event Hub', 'Kafka', 'AK
 <Base>
   <div class="wrap">
     <section class="hero">
-      <div class="hero-orb" aria-hidden="true"><Orb state="searching" /></div>
+      <div class="hero-orb" id="heroOrb" role="button" tabindex="0" aria-label="The orb of questionable wisdom. Click for advice.">
+        <Orb state="searching" />
+        <span class="pulse" aria-hidden="true"></span>
+        <p class="orb-hint" id="orbHint">Click the orb</p>
+        <figure class="orb-quote" id="orbQuote" aria-live="polite"></figure>
+      </div>
 
       <p class="kicker reveal blur" style="--i:0"><span class="dot"></span> Living reference</p>
       <h1 class="reveal-title" aria-label="PRC"><span style="--i:1">P</span><span style="--i:2">R</span><span style="--i:3">C</span></h1>
@@ -66,6 +71,79 @@ const topics = ['Kubernetes', 'Argo CD', 'KEDA', 'Azure Event Hub', 'Kafka', 'AK
       </div>
     </section>
   </div>
+
+
+  <script is:inline>
+    (function () {
+      var wrap = document.getElementById('heroOrb');
+      if (!wrap) return;
+      var quoteEl = document.getElementById('orbQuote');
+      var hint = document.getElementById('orbHint');
+      var pulse = wrap.querySelector('.pulse');
+      var canvas = wrap.querySelector('canvas');
+      var STATES = ['working', 'searching', 'solving', 'listening', 'connecting', 'weaving', 'composing', 'breathing', 'shaping'];
+      var QUOTES = [
+        "It works on my machine. Ship the machine.",
+        "Nothing is more permanent than a temporary fix.",
+        "Have you tried reading the logs? Neither have I.",
+        "Friday deploys build character. Mostly regret.",
+        "A backup is just a restore you haven't tested yet.",
+        "kubectl delete is a lifestyle choice.",
+        "Documentation is a love letter to your future self. Reply rate: low.",
+        "The cluster isn't down. It's thinking very hard.",
+        "Everything is fine. The dashboard is just green with envy.",
+        "Restart it. If that fails, restart it harder.",
+        "Fix it in prod, they said. It'll be fun, they said.",
+        "YAML: because indentation deserves consequences.",
+        "99.9% uptime still leaves nearly nine hours a year for excuses.",
+        "That TODO from 2023 says hi.",
+        "Autoscaling: because panicking manually is exhausting.",
+        "A secret in Git is only secret until the next clone.",
+        "Works in staging. Staging is a state of mind.",
+        "Monitoring: finding out about outages before the customer tweets. Sometimes.",
+        "Root cause: human. Fix: another human.",
+        "Rollback isn't failure. It's a time machine with change approval.",
+        "The best code is the code you didn't write. Yours is a close second.",
+        "Don't panic. Panic is an unmanaged resource.",
+        "Wisdom loading. Please insert coffee.",
+        "Click me again. I have infinite patience and finite wisdom.",
+        "Alerts at 3 a.m. are just the universe asking if you're still on call.",
+        "It's not a bug, it's an undocumented feature with commitment issues."
+      ];
+      function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+      var bag = [], last = '';
+      function nextQuote() {
+        if (!bag.length) { bag = shuffle(QUOTES.slice()); if (bag[bag.length - 1] === last && bag.length > 1) bag.unshift(bag.pop()); }
+        last = bag.pop(); return last;
+      }
+      var current = 'searching';
+      function nextState() {
+        var pool = STATES.filter(function (s) { return s !== current; });
+        current = pool[Math.floor(Math.random() * pool.length)]; return current;
+      }
+      function say(text) {
+        quoteEl.innerHTML = '';
+        var p = document.createElement('p');
+        text.split(' ').forEach(function (w, i) {
+          var s = document.createElement('span'); s.textContent = w; s.style.setProperty('--w', i);
+          p.appendChild(s); p.appendChild(document.createTextNode(' '));
+        });
+        var who = document.createElement('figcaption'); who.textContent = '— the orb, unqualified';
+        quoteEl.appendChild(p); quoteEl.appendChild(who);
+        quoteEl.classList.remove('on'); void quoteEl.offsetWidth; quoteEl.classList.add('on');
+      }
+      function go() {
+        hint.classList.add('gone');
+        pulse.classList.remove('go'); wrap.classList.remove('pop'); void wrap.offsetWidth;
+        pulse.classList.add('go'); wrap.classList.add('pop');
+        var st = nextState();
+        setTimeout(function () { if (canvas._orb) canvas._orb.setState(st); }, 160);
+        say(nextQuote());
+      }
+      wrap.addEventListener('click', go);
+      wrap.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
+    })();
+  </script>
 
   <script is:inline define:vars={{ index }}>
     const q = document.getElementById('q');
