@@ -2,7 +2,7 @@
 
 export interface DNode {
   id: string; x: number; y: number; w: number; h: number;
-  title: string; sub: string; lines?: string[];
+  title: string; sub: string; lines?: string[]; sublines?: string[];
   kind: 'ext' | 'comp' | 'opt';
 }
 export interface DLink { id: string; d: string; label: string; lx: number; ly: number; anchor?: 'start' | 'middle' | 'end'; dashed?: boolean; bi?: boolean; from: string; to: string }
@@ -19,10 +19,12 @@ export const NODES: DNode[] = [
   { id: 'repo', x: 270, y: 290, w: 190, h: 80, title: 'Repo Server', sub: 'argocd-repo-server', kind: 'comp' },
   { id: 'redis', x: 560, y: 290, w: 160, h: 80, title: 'Redis', sub: 'cache', kind: 'comp' },
   { id: 'ctrl', x: 820, y: 290, w: 200, h: 80, title: 'App Controller', sub: 'application-controller', kind: 'comp' },
-  { id: 'cluster', x: 1130, y: 210, w: 130, h: 240, title: 'Target', sub: 'workloads run here', lines: ['Target', 'Kubernetes', 'cluster(s)'], kind: 'ext' },
+  { id: 'cluster', x: 1130, y: 210, w: 130, h: 240, title: 'Target', sub: 'workloads run here', lines: ['Target', 'Kubernetes', 'cluster(s)'], sublines: ['workloads', 'run here'], kind: 'ext' },
   { id: 'appset', x: 300, y: 570, w: 210, h: 66, title: 'ApplicationSet', sub: 'optional', kind: 'opt' },
   { id: 'notif', x: 770, y: 570, w: 210, h: 66, title: 'Notifications', sub: 'optional', kind: 'opt' },
 ];
+
+export const BOXES = [{ x: 240, y: 30, w: 860, h: 660, label: 'Argo CD · namespace argocd' }];
 
 export const LINKS: DLink[] = [
   { id: 'user_api', from: 'user', to: 'api', d: 'M190,100 H540', label: 'HTTPS · gRPC / REST', lx: 365, ly: 88, anchor: 'middle' },

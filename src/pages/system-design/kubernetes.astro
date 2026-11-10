@@ -1,0 +1,149 @@
+---
+import Base from '../../layouts/Base.astro';
+import '../../styles/diagram.css';
+import ArchDiagram from '../../components/ArchDiagram.astro';
+import { NODES, LINKS, INFO, FLOWS, BOXES } from '../../data/k8s-diagram';
+
+const order = ['api', 'etcd', 'sched', 'cm', 'cloud', 'kubelet', 'runtime', 'proxy', 'pods', 'kubectl', 'registry', 'lb', 'client'];
+---
+<Base title="Kubernetes architecture" description="An animated, interactive Kubernetes architecture diagram with plain-English explanations: control plane, nodes, networking, scheduling, scaling and troubleshooting." progress>
+  <div class="wrap cat">
+    <a class="back reveal" href="/system-design/">← System Design</a>
+
+    <header class="ad-head">
+      <p class="kicker reveal blur" style="--i:0"><span class="dot"></span> System design · Containers</p>
+      <h1 class="reveal-title" aria-label="Kubernetes architecture"><span style="--i:1">Kubernetes</span><span style="--i:2">architecture</span></h1>
+      <p class="cat-desc reveal blur" style="--i:3">Follow a request through a cluster. Pick a flow, step through it, and hover any component to see what it does and how requests flow through it.</p>
+    </header>
+
+    <ArchDiagram nodes={NODES} links={LINKS} info={INFO} flows={FLOWS} boxes={BOXES} label="Kubernetes architecture diagram" />
+
+    <div class="prose ad-explain">
+      <h2>Kubernetes in plain words</h2>
+      <p>Kubernetes runs your containers across a group of machines and keeps them running. You do not tell it <em>how</em> to do things. You tell it <em>what you want</em>: "run 3 copies of this app, reachable at this address". Kubernetes makes that true, and keeps it true when machines or containers fail.</p>
+      <p>Picture a restaurant. The <strong>control plane</strong> is the manager and the order board: it takes orders, decides who cooks what, and checks that everything gets made. The <strong>worker nodes</strong> are the cooking stations where the work happens. <strong>Pods</strong> are the dishes being prepared. The manager never cooks. It only assigns and checks.</p>
+
+      <h2>The one idea behind everything</h2>
+      <p>Kubernetes is <strong>declarative</strong>. You describe the <strong>desired state</strong> and it is stored in etcd. A set of <strong>controllers</strong> run a never-ending loop: look at the actual state, compare it with the desired state, and fix any difference.</p>
+      <ul>
+        <li>You ask for 3 replicas and 2 are running, so the controller creates 1 more.</li>
+        <li>A node dies, so the Pods on it are recreated elsewhere.</li>
+        <li>You change the image version, so the controller rolls Pods over one by one.</li>
+      </ul>
+      <p>Once you see this loop, most of Kubernetes stops being mysterious: every feature is some controller reconciling something.</p>
+
+      <h2>The two halves</h2>
+      <ul>
+        <li><strong>Control plane</strong> — the brain: API server, etcd, scheduler, controller manager (plus a cloud controller on cloud clusters). It decides and records.</li>
+        <li><strong>Worker nodes</strong> — the muscle: each runs a kubelet, a container runtime and kube-proxy, and hosts your Pods. They do the work.</li>
+        <li><strong>One rule:</strong> every component talks to the API server and nobody else. The scheduler never calls a kubelet directly. It writes its decision into the API, and the kubelet reads it from there.</li>
+      </ul>
+      <p>On <strong>AKS</strong>, Azure runs the control plane for you. You choose and manage the node pools, and everything on this page about the worker side is yours to run.</p>
+
+      <h2>Objects you will use every day</h2>
+      <ul>
+        <li><strong>Pod</strong> — one or more containers sharing an IP. Disposable.</li>
+        <li><strong>ReplicaSet</strong> — keeps N identical Pods running. You rarely create one yourself.</li>
+        <li><strong>Deployment</strong> — manages ReplicaSets so you get rolling updates and rollbacks. The normal way to run a stateless app.</li>
+        <li><strong>StatefulSet</strong> — like a Deployment, but each Pod keeps a stable name and its own storage. For databases and similar.</li>
+        <li><strong>DaemonSet</strong> — one Pod on every node. For log shippers and monitoring agents.</li>
+        <li><strong>Job and CronJob</strong> — run to completion once, or on a schedule.</li>
+        <li><strong>Service</strong> — a stable IP and DNS name in front of a changing set of Pods.</li>
+        <li><strong>Ingress</strong> — HTTP routing by host and path into Services, handled by an ingress controller.</li>
+        <li><strong>ConfigMap and Secret</strong> — settings and sensitive values kept outside the image.</li>
+        <li><strong>PersistentVolumeClaim</strong> — a request for storage that outlives any one Pod.</li>
+        <li><strong>Namespace</strong> — a named partition of the cluster for teams, apps or environments.</li>
+        <li><strong>ServiceAccount and RBAC</strong> — the identity Pods run as, and the rules about who may do what.</li>
+        <li><strong>HorizontalPodAutoscaler</strong> — changes the replica count based on load.</li>
+      </ul>
+
+      <h2>Networking, made simple</h2>
+      <ul>
+        <li>Every Pod gets <strong>its own IP</strong>, and Pods can reach each other directly without NAT, even across nodes. A <strong>CNI plugin</strong> makes that work.</li>
+        <li>Pod IPs change whenever Pods are replaced, so you never aim at a Pod. You aim at a <strong>Service</strong>.</li>
+        <li>A Service has a stable virtual IP and a DNS name such as <code>my-service.my-namespace.svc.cluster.local</code>, served by CoreDNS inside the cluster.</li>
+        <li>Service types: <strong>ClusterIP</strong> (inside the cluster only), <strong>NodePort</strong> (a port on every node), <strong>LoadBalancer</strong> (a cloud load balancer in front).</li>
+        <li><strong>kube-proxy</strong> turns a Service into real forwarding rules on each node, choosing among healthy Pods.</li>
+        <li>An <strong>Ingress</strong> shares one entry point between many Services by host or path. <strong>NetworkPolicy</strong> lets you restrict which Pods may talk to which.</li>
+      </ul>
+
+      <h2>Scheduling: how a Pod picks a node</h2>
+      <p>The scheduler works in two passes. <strong>Filter</strong> removes nodes that cannot run the Pod. <strong>Score</strong> ranks the rest and the winner gets the Pod.</p>
+      <ul>
+        <li><strong>Requests</strong> are what a container is guaranteed, and what the scheduler plans with. <strong>Limits</strong> are the ceiling: go over the memory limit and the container is killed (OOMKilled), go over the CPU limit and it is throttled.</li>
+        <li><strong>nodeSelector and affinity</strong> steer Pods toward certain nodes, or toward and away from other Pods.</li>
+        <li><strong>Taints and tolerations</strong> keep Pods off special nodes unless they explicitly tolerate them.</li>
+        <li>If nothing fits, the Pod stays <strong>Pending</strong>. Check requests against real capacity with the <a href="/scripts/script-node-capacity/">Node Capacity Report</a> and <a href="/scripts/script-deployment-capacity/">Deployment Capacity Report</a>.</li>
+      </ul>
+
+      <h2>Storage</h2>
+      <ul>
+        <li>A container's own filesystem disappears with the container.</li>
+        <li><strong>emptyDir</strong> is scratch space that lives as long as the Pod.</li>
+        <li>A <strong>PersistentVolumeClaim</strong> asks for durable storage. A <strong>StorageClass</strong> says what kind (for example a cloud disk), and the volume is created and attached when the claim is made.</li>
+      </ul>
+
+      <h2>Security in layers</h2>
+      <ul>
+        <li>Every API request passes three gates in order: <strong>authentication</strong> (who are you), <strong>authorization</strong> (RBAC: may you do this), then <strong>admission</strong> (policies that validate or modify the request).</li>
+        <li>Give each app its own <strong>ServiceAccount</strong> with only the permissions it needs.</li>
+        <li><strong>Secrets</strong> are only base64-encoded by default, which is not encryption. Turn on encryption at rest or use an external secret store.</li>
+        <li>Use <strong>NetworkPolicy</strong> to limit which Pods can talk to each other, and avoid running containers as root.</li>
+      </ul>
+
+      <h2>Scaling</h2>
+      <ul>
+        <li><strong>HPA</strong> adds or removes Pods based on CPU, memory or custom metrics.</li>
+        <li><strong>VPA</strong> adjusts the CPU and memory requests of Pods.</li>
+        <li><strong>Cluster Autoscaler</strong> adds or removes nodes when Pods cannot be scheduled or nodes sit empty.</li>
+        <li><strong>KEDA</strong> scales on events such as queue lag. See your <a href="/how-to/keda-config/">KEDA Configuration</a> guide, and check the whole picture with the <a href="/scripts/script-hpa-keda-dashboard/">HPA &amp; KEDA Status Dashboard</a>.</li>
+      </ul>
+
+      <h2>When things go wrong</h2>
+      <table>
+        <thead><tr><th>You see</th><th>It usually means</th><th>First command</th></tr></thead>
+        <tbody>
+          <tr><td>Pending</td><td>No node fits the Pod (resources, taints, affinity)</td><td><code>kubectl describe pod NAME</code></td></tr>
+          <tr><td>ImagePullBackOff</td><td>Wrong image name or tag, or no registry access</td><td><code>kubectl describe pod NAME</code></td></tr>
+          <tr><td>CrashLoopBackOff</td><td>The app starts, then crashes</td><td><code>kubectl logs NAME --previous</code></td></tr>
+          <tr><td>OOMKilled</td><td>Memory limit too low or a leak</td><td><code>kubectl describe pod NAME</code></td></tr>
+          <tr><td>Service has no traffic</td><td>Label selector matches no Pods</td><td><code>kubectl get endpoints SERVICE</code></td></tr>
+          <tr><td>Node NotReady</td><td>The kubelet or node is unhealthy</td><td><code>kubectl describe node NAME</code></td></tr>
+        </tbody>
+      </table>
+
+      <h2>Handy kubectl</h2>
+<pre><code># look around
+kubectl get pods -A -o wide
+kubectl describe pod NAME -n NAMESPACE
+kubectl get events -n NAMESPACE --sort-by=.lastTimestamp
+
+# debug
+kubectl logs NAME -n NAMESPACE --tail=100 -f
+kubectl exec -it NAME -n NAMESPACE -- sh
+
+# change things
+kubectl apply -f manifest.yaml
+kubectl rollout status deployment/NAME
+kubectl rollout undo deployment/NAME
+kubectl scale deployment/NAME --replicas=3
+
+# usage (needs Metrics Server)
+kubectl top nodes
+kubectl top pods -A</code></pre>
+    </div>
+
+    <section class="ad-ref">
+      <h2 class="reveal">Components at a glance</h2>
+      <div class="ad-ref-grid">
+        {order.map((id, i) => (
+          <div class="ad-ref-card reveal" style={`--i:${i % 3}`}>
+            <p class="k">{INFO[id].tag}</p>
+            <h3>{INFO[id].name}</h3>
+            <p>{INFO[id].does}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+  </div>
+</Base>

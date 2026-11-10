@@ -8,4 +8,11 @@ export const designs: Design[] = [
     icon: '🐙',
     tag: 'GitOps',
   },
+  {
+    slug: 'kubernetes',
+    title: 'Kubernetes architecture',
+    summary: 'Control plane, nodes and Pods explained simply, with animated flows for deploys, traffic, self-healing and autoscaling.',
+    icon: '☸️',
+    tag: 'Containers',
+  },
 ];
