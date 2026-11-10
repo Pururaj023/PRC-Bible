@@ -1,0 +1,254 @@
+---
+import Base from '../layouts/Base.astro';
+import Orb from '../components/Orb.astro';
+import '../styles/notes.css';
+import { getCategory } from '../data/categories';
+const cat = getCategory('notes');
+---
+<Base title="Notes" description={cat.desc}>
+  <div class="wrap cat">
+    <a class="back reveal" href="/">← Home</a>
+    <div class="cat-head">
+      <h1 class="reveal-title" aria-label="Notes"><span style="--i:1">Notes</span></h1>
+      <p class="cat-desc reveal blur" style="--i:2">Write anything, keep it. Search, preview markdown, and export a backup whenever you like.</p>
+    </div>
+
+    <p class="nt-note reveal" style="--i:3">
+      <span aria-hidden="true">🔒</span>
+      <span><b>Saved in this browser only.</b> Notes aren't uploaded anywhere, so use <b>Export all</b> to back them up or move them to another device.</span>
+    </p>
+
+    <div class="nt-app reveal" style="--i:4" id="ntApp">
+      <aside class="nt-side" aria-label="Your notes">
+        <div class="nt-side-top">
+          <button class="btn btn-primary nt-new" id="ntNew" type="button">+ New note</button>
+          <input class="nt-search" id="ntSearch" type="search" placeholder="Search notes" aria-label="Search notes" autocomplete="off" />
+        </div>
+        <ul class="nt-list" id="ntList"></ul>
+        <div class="nt-foot">
+          <button type="button" id="ntExport">Export all</button>
+          <label>Import<input type="file" id="ntImport" accept=".json,application/json" hidden /></label>
+        </div>
+      </aside>
+
+      <section class="nt-main" aria-label="Editor">
+        <div class="nt-empty" id="ntEmpty">
+          <div>
+            <Orb size="64px" state="breathing" />
+            <strong>Your notebook</strong>
+            Pick a note on the left, or start a fresh one.
+            <div><button class="btn btn-primary" id="ntEmptyNew" type="button">Write a note</button></div>
+          </div>
+        </div>
+
+        <div class="nt-editor" id="ntEditor" hidden>
+          <div class="nt-bar">
+            <button class="nt-back" id="ntBack" type="button">← All notes</button>
+            <span class="nt-status" id="ntStatus" role="status">Saved</span>
+            <div class="nt-actions">
+              <button type="button" id="ntPreview" aria-pressed="false">Preview</button>
+              <button type="button" id="ntDl">Download .md</button>
+              <button type="button" id="ntDel" class="danger">Delete</button>
+            </div>
+          </div>
+          <input class="nt-title" id="ntTitle" placeholder="Untitled" aria-label="Note title" autocomplete="off" />
+          <textarea class="nt-body" id="ntBody" spellcheck="false" aria-label="Note body" placeholder="Write something. Markdown works: # headings, **bold**, `code`, - lists, and fenced code blocks."></textarea>
+          <div class="nt-view prose" id="ntView" hidden></div>
+        </div>
+      </section>
+    </div>
+  </div>
+  <div class="nt-toast" id="ntToast" role="status" aria-live="polite"></div>
+
+  <script is:inline>
+    (function () {
+      var KEY = 'prc-notes-v1';
+      var $ = function (id) { return document.getElementById(id); };
+      var app = $('ntApp'), list = $('ntList'), search = $('ntSearch'), editor = $('ntEditor'), empty = $('ntEmpty');
+      var title = $('ntTitle'), body = $('ntBody'), view = $('ntView'), status = $('ntStatus'), prevBtn = $('ntPreview'), delBtn = $('ntDel'), toast = $('ntToast');
+      var notes = [], cur = null, timer = null, dirty = false, canStore = true, delTimer = null, toastT = null;
+
+      function load() {
+        try {
+          var raw = localStorage.getItem(KEY);
+          var arr = raw ? JSON.parse(raw) : [];
+          notes = Array.isArray(arr) ? arr.filter(function (n) { return n && typeof n.id === 'string'; }) : [];
+        } catch (e) { canStore = false; notes = []; }
+      }
+      function persist() {
+        try { localStorage.setItem(KEY, JSON.stringify(notes)); return true; } catch (e) { canStore = false; return false; }
+      }
+      function say(msg) {
+        toast.textContent = msg; toast.classList.add('show');
+        clearTimeout(toastT); toastT = setTimeout(function () { toast.classList.remove('show'); }, 2600);
+      }
+      function setStatus(text, cls) { status.textContent = text; status.className = 'nt-status' + (cls ? ' ' + cls : ''); }
+      function hhmm(ts) { return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }
+      function when(ts) {
+        var d = new Date(ts), n = new Date();
+        if (d.toDateString() === n.toDateString()) return 'Today · ' + hhmm(ts);
+        return d.toLocaleDateString([], { day: 'numeric', month: 'short', year: d.getFullYear() === n.getFullYear() ? undefined : 'numeric' });
+      }
+      function snippet(b) {
+        var line = (b || '').split('\n').map(function (l) { return l.replace(/^[#>\-*\s`]+/, '').trim(); }).filter(Boolean)[0];
+        return line || 'No content yet';
+      }
+      function find(id) { for (var i = 0; i < notes.length; i++) if (notes[i].id === id) return notes[i]; return null; }
+
+      function renderList() {
+        var q = search.value.trim().toLowerCase();
+        var items = notes.slice().sort(function (a, b) { return b.updated - a.updated; })
+          .filter(function (n) { return !q || ((n.title || '') + ' ' + (n.body || '')).toLowerCase().indexOf(q) !== -1; });
+        list.innerHTML = '';
+        if (!items.length) {
+          var li = document.createElement('li'); li.className = 'nt-none';
+          li.textContent = notes.length ? 'No notes match that search.' : 'No notes yet.';
+          list.appendChild(li); return;
+        }
+        items.forEach(function (n, i) {
+          var li = document.createElement('li');
+          li.className = 'nt-item' + (n.id === cur ? ' on' : '');
+          li.style.animationDelay = Math.min(i, 10) * 30 + 'ms';
+          li.tabIndex = 0; li.setAttribute('role', 'button');
+          var h = document.createElement('h4'); h.textContent = n.title || 'Untitled';
+          var p = document.createElement('p'); p.textContent = snippet(n.body);
+          var t = document.createElement('time'); t.textContent = when(n.updated);
+          li.appendChild(h); li.appendChild(p); li.appendChild(t);
+          li.addEventListener('click', function () { select(n.id); });
+          li.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); select(n.id); } });
+          list.appendChild(li);
+        });
+      }
+
+      function showEmpty() { cur = null; editor.hidden = true; empty.hidden = false; app.classList.remove('editing'); renderList(); }
+      function select(id) {
+        flush();
+        var n = find(id); if (!n) return showEmpty();
+        cur = id; empty.hidden = true; editor.hidden = false; app.classList.add('editing');
+        title.value = n.title || ''; body.value = n.body || '';
+        setPreview(false);
+        setStatus(canStore ? 'Saved · ' + hhmm(n.updated) : 'Not saved: browser storage is blocked', canStore ? '' : 'warn');
+        renderList();
+      }
+      function create() {
+        flush();
+        var n = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), title: '', body: '', updated: Date.now() };
+        notes.unshift(n); persist(); select(n.id); title.focus();
+      }
+
+      function flush() {
+        clearTimeout(timer);
+        if (!dirty || !cur) return;
+        var n = find(cur); if (!n) return;
+        n.title = title.value; n.body = body.value; n.updated = Date.now(); dirty = false;
+        var ok = persist();
+        setStatus(ok ? 'Saved · ' + hhmm(n.updated) : 'Not saved: browser storage is blocked', ok ? '' : 'warn');
+        renderList();
+      }
+      function touch() {
+        if (!cur) return;
+        dirty = true; setStatus('Saving…', 'saving');
+        clearTimeout(timer); timer = setTimeout(flush, 500);
+      }
+      title.addEventListener('input', touch);
+      body.addEventListener('input', touch);
+      search.addEventListener('input', renderList);
+      addEventListener('beforeunload', flush);
+      document.addEventListener('visibilitychange', function () { if (document.hidden) flush(); });
+      addEventListener('storage', function (e) { if (e.key === KEY && !dirty) { load(); if (cur && !find(cur)) showEmpty(); else renderList(); } });
+
+      // markdown preview (escapes HTML first, then applies a small safe subset)
+      function esc(s) { return s.replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+      function inline(s) {
+        return s.replace(/`([^`]+)`/g, '<code>$1</code>')
+          .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+          .replace(/(^|[^*])\*([^*\n]+)\*/g, '$1<em>$2</em>')
+          .replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+      }
+      function md(src) {
+        var blocks = [];
+        var t = src.replace(/```[^\n]*\n([\s\S]*?)```/g, function (_, c) { blocks.push('<pre><code>' + esc(c.replace(/\n$/, '')) + '</code></pre>'); return '\u0000' + (blocks.length - 1) + '\u0000'; });
+        var lines = esc(t).split('\n'), out = [], para = [], lst = null, m;
+        function fp() { if (para.length) { out.push('<p>' + inline(para.join(' ')) + '</p>'); para = []; } }
+        function fl() { if (lst) { out.push('</' + lst + '>'); lst = null; } }
+        lines.forEach(function (ln) {
+          if (/^\u0000\d+\u0000$/.test(ln.trim())) { fp(); fl(); out.push(ln.trim()); return; }
+          if ((m = ln.match(/^(#{1,3})\s+(.*)$/))) { fp(); fl(); out.push('<h' + m[1].length + '>' + inline(m[2]) + '</h' + m[1].length + '>'); return; }
+          if ((m = ln.match(/^\s*[-*]\s+(.*)$/))) { fp(); if (lst !== 'ul') { fl(); out.push('<ul>'); lst = 'ul'; } out.push('<li>' + inline(m[1]) + '</li>'); return; }
+          if ((m = ln.match(/^\s*\d+\.\s+(.*)$/))) { fp(); if (lst !== 'ol') { fl(); out.push('<ol>'); lst = 'ol'; } out.push('<li>' + inline(m[1]) + '</li>'); return; }
+          if ((m = ln.match(/^&gt;\s?(.*)$/))) { fp(); fl(); out.push('<blockquote><p>' + inline(m[1]) + '</p></blockquote>'); return; }
+          if (!ln.trim()) { fp(); fl(); return; }
+          fl(); para.push(ln.trim());
+        });
+        fp(); fl();
+        return out.join('\n').replace(/\u0000(\d+)\u0000/g, function (_, i) { return blocks[+i]; });
+      }
+      function setPreview(on) {
+        prevBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+        prevBtn.textContent = on ? 'Edit' : 'Preview';
+        if (on) { view.innerHTML = md(body.value) || '<p>Nothing to preview yet.</p>'; }
+        view.hidden = !on; body.hidden = on;
+      }
+      prevBtn.addEventListener('click', function () { setPreview(prevBtn.getAttribute('aria-pressed') !== 'true'); });
+
+      // delete (two clicks)
+      delBtn.addEventListener('click', function () {
+        if (!delBtn.classList.contains('confirm')) {
+          delBtn.classList.add('confirm'); delBtn.textContent = 'Click again to delete';
+          delTimer = setTimeout(function () { delBtn.classList.remove('confirm'); delBtn.textContent = 'Delete'; }, 3000);
+          return;
+        }
+        clearTimeout(delTimer); delBtn.classList.remove('confirm'); delBtn.textContent = 'Delete';
+        notes = notes.filter(function (n) { return n.id !== cur; }); dirty = false; persist(); showEmpty(); say('Note deleted');
+      });
+
+      function download(name, text, type) {
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob([text], { type: type }));
+        a.download = name; document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+      }
+      $('ntDl').addEventListener('click', function () {
+        flush(); var n = find(cur); if (!n) return;
+        var slug = (n.title || 'note').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'note';
+        download(slug + '.md', (n.title ? '# ' + n.title + '\n\n' : '') + n.body + '\n', 'text/markdown');
+      });
+      $('ntExport').addEventListener('click', function () {
+        flush();
+        if (!notes.length) return say('Nothing to export yet');
+        download('prc-notes-' + new Date().toISOString().slice(0, 10) + '.json', JSON.stringify({ app: 'prc-notes', version: 1, exported: new Date().toISOString(), notes: notes }, null, 2), 'application/json');
+        say('Exported ' + notes.length + (notes.length === 1 ? ' note' : ' notes'));
+      });
+      $('ntImport').addEventListener('change', function (e) {
+        var file = e.target.files && e.target.files[0]; if (!file) return;
+        var r = new FileReader();
+        r.onload = function () {
+          try {
+            var data = JSON.parse(r.result); var arr = Array.isArray(data) ? data : data.notes;
+            if (!Array.isArray(arr)) throw new Error('bad');
+            var added = 0;
+            arr.forEach(function (n) {
+              if (!n || typeof n.id !== 'string') return;
+              var clean = { id: n.id, title: String(n.title || ''), body: String(n.body || ''), updated: +n.updated || Date.now() };
+              var ex = find(n.id);
+              if (!ex) { notes.push(clean); added++; } else if (clean.updated > ex.updated) { ex.title = clean.title; ex.body = clean.body; ex.updated = clean.updated; added++; }
+            });
+            persist(); renderList(); if (cur) select(cur); say('Imported ' + added + (added === 1 ? ' note' : ' notes'));
+          } catch (err) { say("That file doesn't look like a notes export"); }
+          e.target.value = '';
+        };
+        r.readAsText(file);
+      });
+
+      $('ntNew').addEventListener('click', create);
+      $('ntEmptyNew').addEventListener('click', create);
+      $('ntBack').addEventListener('click', function () { flush(); showEmpty(); });
+
+      load();
+      if (!canStore) say('Browser storage is blocked, so notes will not be saved');
+      renderList();
+      if (notes.length) select(notes.slice().sort(function (a, b) { return b.updated - a.updated; })[0].id);
+      if (matchMedia('(max-width: 860px)').matches) app.classList.remove('editing');
+    })();
+  </script>
+</Base>

@@ -1,0 +1,22 @@
+---
+import Base from '../../layouts/Base.astro';
+import GuideCard from '../../components/GuideCard.astro';
+import { getCategory } from '../../data/categories';
+import { designs } from '../../data/designs';
+const cat = getCategory('system-design');
+---
+<Base title={cat.title} description={cat.desc}>
+  <div class="wrap cat">
+    <a class="back reveal" href="/">← Home</a>
+    <div class="cat-head">
+      <h1 class="reveal-title" aria-label={cat.title}><span style="--i:1">System</span> <span style="--i:2">Design</span></h1>
+      <p class="cat-desc reveal blur" style="--i:3">{cat.desc}</p>
+      <span class="pill reveal" style="--i:4">{designs.length} {designs.length === 1 ? 'diagram' : 'diagrams'}</span>
+    </div>
+    <div class="grid">
+      {designs.map((d, i) => (
+        <GuideCard i={i} href={`/system-design/${d.slug}/`} index={String(i + 1).padStart(2, '0')} icon={d.icon} title={d.title} summary={d.summary} tag={d.tag} />
+      ))}
+    </div>
+  </div>
+</Base>

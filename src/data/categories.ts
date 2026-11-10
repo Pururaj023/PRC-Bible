@@ -1,5 +1,7 @@
 export interface Category {
-  slug: 'how-to' | 'rnd' | 'issues' | 'commands' | 'scripts' | 'k8s' | 'linux';
+  slug: 'how-to' | 'rnd' | 'issues' | 'commands' | 'scripts' | 'k8s' | 'linux' | 'system-design' | 'notes';
+  /** custom pages (not markdown guides) */
+  custom?: boolean;
   title: string;
   nav: string;
   icon: string;
@@ -30,6 +32,12 @@ export const categories: Category[] = [
   { slug: 'linux', title: 'Linux', nav: 'Linux', icon: '🐧', tag: 'Systems',
     blurb: 'System-level tricks, permissions, networking, and the flags nobody remembers.',
     desc: 'System-level notes: permissions, networking, processes, and the flags worth remembering.' },
+  { slug: 'system-design', title: 'System Design', nav: 'Design', icon: '🏗️', tag: 'Architecture', custom: true,
+    blurb: 'Animated, interactive architecture diagrams for each tech stack.',
+    desc: 'Architecture diagrams for different tech stacks. Hover a component to see what it does and how requests flow through it.' },
+  { slug: 'notes', title: 'Notes', nav: 'Notes', icon: '📝', tag: 'Personal', custom: true,
+    blurb: 'Your own notes. Write, search and keep them right in your browser.',
+    desc: 'A private notebook. Notes are saved in this browser, with export and import for backups.' },
 ];
 
 export const getCategory = (slug: string) => categories.find((c) => c.slug === slug)!;

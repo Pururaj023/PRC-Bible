@@ -6,7 +6,7 @@ import GuideCard from '../../components/GuideCard.astro';
 import { categories, getCategory } from '../../data/categories';
 
 export function getStaticPaths() {
-  return categories.map((c) => ({ params: { category: c.slug } }));
+  return categories.filter((c) => !c.custom).map((c) => ({ params: { category: c.slug } }));
 }
 const { category } = Astro.params;
 const cat = getCategory(category!);
